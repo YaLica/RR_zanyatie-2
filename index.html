@@ -147,8 +147,15 @@ img,video,audio{-webkit-touch-callout:none}img{-webkit-user-drag:none}
       this.reset();
     }
     reset() {
-      this.cards = ['cat', 'car', 'leaves'].flatMap(object =>
-        shuffled(rounds.flat().filter(card => card.object === object), this.random));
+      const previous = this.cards || [];
+      this.cards = ['cat', 'car', 'leaves'].flatMap(object => {
+        const before = previous.filter(card => card.object === object);
+        const row = shuffled(rounds.flat().filter(card => card.object === object), this.random);
+        if (before.length === row.length && row.every((card, index) => card.file === before[index].file)) {
+          row.push(row.shift());
+        }
+        return row;
+      });
       this.heard = new Set();
       this.found = new Set();
     }
@@ -214,6 +221,9 @@ img,video,audio{-webkit-touch-callout:none}img{-webkit-user-drag:none}
     const definition = objects[card.object];
     const container = document.createElement('article');
     container.className = 'phon-card';
+    container.dataset.object = card.object;
+    container.style.gridRow = String(['cat', 'car', 'leaves'].indexOf(card.object) + 1);
+    container.style.gridColumn = String(position % 3 + 1);
     const choose = document.createElement('button');
     choose.type = 'button';
     choose.className = 'phon-picture';
